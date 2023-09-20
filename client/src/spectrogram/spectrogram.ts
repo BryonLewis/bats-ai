@@ -2,8 +2,8 @@ interface Options {
     audio: { enable: boolean};
     colors?: (steps: number) => string[];
     canvas: {
-        width: (() => number) | number;
-        height: (() => number) | number;
+        width?: (() => number) | number;
+        height?: (() => number) | number;
     }
 }
 
@@ -40,6 +40,8 @@ export default class Spectrogram {
     private _colors: string[];
     private _baseCanvas: HTMLCanvasElement;
     private _baseCanvasContext: SpectrogramCanvasContext | null;
+    private pixelArray: string[];
+    private columnCount: number;
 
     constructor(canvas: HTMLCanvasElement, options: Options) {
         this._baseCanvas = canvas;
@@ -51,6 +53,8 @@ export default class Spectrogram {
             audioBufferStream: null,
             userMediaStream: null,
         };
+        this.pixelArray = [];
+        this.columnCount = 0;
 
         const baseCanvasOptions = options.canvas || {};
 
@@ -58,12 +62,12 @@ export default class Spectrogram {
         this._baseCanvasContext = this._baseCanvas.getContext('2d') as SpectrogramCanvasContext;
 
 
-        this._baseCanvas.width = _result(baseCanvasOptions.width) || this._baseCanvas.width;
-        this._baseCanvas.height = _result(baseCanvasOptions.height) || this._baseCanvas.height;
+        this._baseCanvas.width = baseCanvasOptions.width ? _result(baseCanvasOptions.width) : this._baseCanvas.width;
+        this._baseCanvas.height = baseCanvasOptions.height? _result(baseCanvasOptions.height) : this._baseCanvas.height;
     
         window.onresize = () => {
-          this._baseCanvas.width = _result(baseCanvasOptions.width) || this._baseCanvas.width;
-          this._baseCanvas.height = _result(baseCanvasOptions.height) || this._baseCanvas.height;
+          this._baseCanvas.width = baseCanvasOptions.width ? _result(baseCanvasOptions.width) : this._baseCanvas.width;
+          this._baseCanvas.height = baseCanvasOptions.height? _result(baseCanvasOptions.height) : this._baseCanvas.height;
         };
     
 
@@ -85,30 +89,30 @@ export default class Spectrogram {
     private _init() {
         const source = this._sources.audioBufferStream;
         if (source && source.audioContext && source.sourceNode) {
-            source.scriptNode = source.audioContext.createScriptProcessor(2048, 1, 1);
-            source.scriptNode.connect(source.audioContext.destination);
-            source.scriptNode.onaudioprocess = () => {
-            if (source && source.analyser && source.canvasContext) {
-                const array = new Uint8Array(source.analyser.frequencyBinCount);
-                source.analyser.getByteFrequencyData(array);
-            
-                this._draw(array, source.canvasContext);
-                }
-            };
-        
+            // source.scriptNode = source.audioContext.createScriptProcessor(2048, 1, 1);
+            // source.scriptNode.connect(source.audioContext.destination);
+            // source.scriptNode.onaudioprocess = () => {
+            // if (source && source.analyser && source.canvasContext) {
+            //     const array = new Uint8Array(source.analyser.frequencyBinCount);
+            //     source.analyser.getByteFrequencyData(array);
+
+            //     this._draw(array, source.canvasContext);
+            //     }
+            // };
             source.sourceNode.onended = () => {
-            this.stop();
+              console.log('ended');
+              this.stop();
             };
         
             source.analyser = source.audioContext.createAnalyser();
             source.analyser.smoothingTimeConstant = 0;
             source.analyser.fftSize = 1024;
         
-            source.analyser.connect(source.scriptNode);
             source.sourceNode.connect(source.analyser);
             if (this.audio.enable) {
             source.sourceNode.connect(source.audioContext.destination);
             }
+            
         }
       }
     
@@ -148,11 +152,44 @@ export default class Spectrogram {
     }
 
     private _startMediaStreamDraw(analyser: AnalyserNode, canvasContext: SpectrogramCanvasContext) {
-        window.requestAnimationFrame(this._startMediaStreamDraw.bind(this, analyser, canvasContext));
+        if (!this._audioEnded) {
+          window.requestAnimationFrame(() => this._startMediaStreamDraw(analyser, canvasContext));
+        } else {
+          this.drawSingleImage(canvasContext);
+        }
         const audioData = new Uint8Array(analyser.frequencyBinCount);
         analyser.getByteFrequencyData(audioData);
         this._draw(audioData, canvasContext);
+        //this.generateImageArray(audioData, canvasContext);
       }
+
+    private generateImageArray(array: Uint8Array, canvasContext: SpectrogramCanvasContext) {
+      const base = (this._sources.audioBufferStream?.analyser?.frequencyBinCount || 0) * this.columnCount;
+      for (let i = 0; i < array.length; i++) {
+        const value = array[i];
+        this.pixelArray[base + i]= this._getColor(value);
+      }
+      this.columnCount += 1;
+    }
+
+    private drawSingleImage(canvasContext: SpectrogramCanvasContext) {
+      const array = this.pixelArray;
+      const height = this._sources.audioBufferStream?.analyser?.frequencyBinCount || 0;
+      const canvasHeight  = canvasContext.canvas.height;
+      const width = canvasContext.canvas.width;
+      const canvas = canvasContext.canvas;
+      let x  = 0;
+      for (let i = 0; i < array.length; i++) {
+        const value = array[i];
+        canvasContext.fillStyle = value;
+        x = Math.floor(i / height);
+        canvasContext.fillRect(x, canvasHeight - (i -( x* height)), 1, 1);
+        }
+        if (this._baseCanvasContext) {
+          this._baseCanvasContext.drawImage(canvas, 0, 0, width, canvasHeight);
+      }
+
+    }
 
 
     public connectSource(audioBuffer: AudioBuffer, audioContext: AudioContext) {
@@ -166,8 +203,8 @@ export default class Spectrogram {
         }
 
     
-        if (toString.call(audioBuffer) === '[object AudioBuffer]' && source.audioBuffer) {
-          audioContext = (!audioContext && source.audioBuffer.context) || (!audioContext && source.audioContext) || audioContext;
+        if (toString.call(audioBuffer) === '[object AudioBuffer]') {
+          audioContext = (!audioContext && source?.audioBuffer?.context) || (!audioContext && source.audioContext) || audioContext;
     
           const sourceNode = audioContext.createBufferSource();
           sourceNode.buffer = audioBuffer;
@@ -208,8 +245,7 @@ export default class Spectrogram {
       }
 
     public start(offset: number) {
-        let source = this._sources.audioBufferStream;
-        const sourceMedia = this._sources.userMediaStream;
+        const source = this._sources.audioBufferStream;
     
         if (source && source.sourceNode) {
           source.sourceNode.start(0, offset||0);
@@ -219,8 +255,7 @@ export default class Spectrogram {
         }
     
         // media stream uses an analyser for audio data
-        if (sourceMedia && sourceMedia.analyser) {
-          source = sourceMedia;
+        if (source && source.analyser) {
           const canvas = document.createElement('canvas');
           canvas.width = this._baseCanvas.width;
           canvas.height = this._baseCanvas.height;
@@ -231,7 +266,7 @@ export default class Spectrogram {
           tempCanvas.height = canvas.height;
     
           canvasContext._tempContext = tempCanvas.getContext('2d');
-          if (source?.analyser) {
+          if (source?.analyser && source.sourceNode) {
             this._startMediaStreamDraw(source.analyser, canvasContext);
           }
         }
@@ -300,9 +335,6 @@ export default class Spectrogram {
     
         return colors;
     }
-
-
-    
 
     private _getColor(index: number) {
         let color = this._colors[index>>0];

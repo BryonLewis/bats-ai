@@ -1,5 +1,6 @@
 import { createWebHistory, RouterOptions } from 'vue-router';
 import HomePage from '../views/HomePage.vue';
+import Spectrogram from '../components/Spectrogram.vue';
 
 function makeOptions(): RouterOptions {
   return {
@@ -9,6 +10,11 @@ function makeOptions(): RouterOptions {
         path: '/',
         // component: HomePage,
         component: HomePage,
+      },
+      {
+        path: '/spectrogram',
+        // component: HomePage,
+        component: Spectrogram,
       },
     ],
   };
