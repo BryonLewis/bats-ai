@@ -17,7 +17,7 @@ const init = () => {
     spectro = new Spectrogram(document.getElementById('canvas') as HTMLCanvasElement, {
         canvas: {
             width: () => window.innerWidth,
-            height: () => window.innerHeight*.80,
+            height: () => 32768,
         },
         audio: {
             enable: true,

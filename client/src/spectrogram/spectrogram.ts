@@ -42,6 +42,7 @@ export default class Spectrogram {
     private _baseCanvasContext: SpectrogramCanvasContext | null;
     private pixelArray: string[];
     private columnCount: number;
+    private sampleRate: number;
 
     constructor(canvas: HTMLCanvasElement, options: Options) {
         this._baseCanvas = canvas;
@@ -55,6 +56,7 @@ export default class Spectrogram {
         };
         this.pixelArray = [];
         this.columnCount = 0;
+        this.sampleRate = 0;
 
         const baseCanvasOptions = options.canvas || {};
 
@@ -106,8 +108,9 @@ export default class Spectrogram {
         
             source.analyser = source.audioContext.createAnalyser();
             source.analyser.smoothingTimeConstant = 0;
-            source.analyser.fftSize = 1024;
-        
+            source.analyser.fftSize = 32768;
+            this.sampleRate = source.audioContext.sampleRate;
+            console.log(this.sampleRate);
             source.sourceNode.connect(source.analyser);
             if (this.audio.enable) {
             source.sourceNode.connect(source.audioContext.destination);
@@ -158,6 +161,7 @@ export default class Spectrogram {
           this.drawSingleImage(canvasContext);
         }
         const audioData = new Uint8Array(analyser.frequencyBinCount);
+        console.log(analyser.frequencyBinCount);
         analyser.getByteFrequencyData(audioData);
         this._draw(audioData, canvasContext);
         //this.generateImageArray(audioData, canvasContext);
