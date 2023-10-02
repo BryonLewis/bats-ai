@@ -11,6 +11,8 @@ type CustomSpectro = Spectrogram &
   windowFunc: SpectroWindowFunc;
   canvas: HTMLCanvasElement;
   labelsEl: HTMLCanvasElement;
+  width: number;
+  height: number;
   wrapper: HTMLDivElement;
 };
 const generateColors = (steps: number) => {
@@ -33,6 +35,7 @@ const generateColors = (steps: number) => {
 
 
 let ws: WaveSurfer;
+let wsDisplay: WaveSurfer; // Displayed Waveform;
 let spectrogram: CustomSpectro;
 const frequencyMin = ref(0);
 const frequencyMax = ref(0);
@@ -49,31 +52,36 @@ const zoomVal = ref(100);
 
 const resizeCanvas = () => {
     if (spectrogram.canvas) {
-      const context = spectrogram.canvas.getContext('2d');
-      if (context) {
-        spectrogram.canvas.style.height = '500px';
-      }
+      spectrogram.canvas.style.height = '500px';
     }
     if (spectrogram.labelsEl) {
-      console.log(spectrogram.labelsEl);
       spectrogram.labelsEl.style.display = 'none';
     }
-    console.log(spectrogram.wrapper);
     if (spectrogram.wrapper) {
-        console.log(spectrogram.wrapper.style.height);
         spectrogram.wrapper.style.maxHeight = '500px';
-        console.log(spectrogram.wrapper.style.height);
 
     }
 };
 const init = () => {
     const colors = generateColors(256);
-    ws = WaveSurfer.create({
+    wsDisplay = WaveSurfer.create({
         container: '#waveform',
         waveColor: 'rgb(200, 0, 200)',
         progressColor: 'rgb(100, 0, 100)',
         url: media,
+        hideScrollbar: true,
         sampleRate: 256000,
+        minPxPerSec: 100,
+    });
+
+    ws = WaveSurfer.create({
+        container: '#waveformhidden',
+        waveColor: 'rgb(200, 0, 200)',
+        progressColor: 'rgb(100, 0, 100)',
+        url: media,
+        hideScrollbar: true,
+        sampleRate: 256000,
+        height: 0,
         minPxPerSec: 100,
     });
     spectrogram = Spectrogram.create({
@@ -92,41 +100,88 @@ const init = () => {
         ws.play();
     });
     ws.once('ready', () => {
-        if (spectrogram) {
-            rangeSlider.value = [spectrogram.frequencyMin, spectrogram.frequencyMax];
-            frequencyMin.value = spectrogram.frequencyMin;
-            frequencyMax.value = spectrogram.frequencyMax;
-            sampleRate.value = spectrogram.buffer.sampleRate;
-            windowFunc.value = spectrogram.windowFunc;
-            ready.value = true;
-            resizeCanvas();
+      ready.value = true;
+      //ws.getWrapper().style.display = 'none';
+      if (spectrogram) {
+          rangeSlider.value = [spectrogram.frequencyMin, spectrogram.frequencyMax];
+          frequencyMin.value = spectrogram.frequencyMin;
+          frequencyMax.value = spectrogram.frequencyMax;
+          sampleRate.value = spectrogram.buffer.sampleRate;
+          windowFunc.value = spectrogram.windowFunc;
+          nextTick(() => updateLegend());
+          //resizeCanvas();
+          if (spectrogram.labelsEl) {
+            spectrogram.labelsEl.style.display = 'none';
+          }
 
-        }
+        spectrogram.wrapper.addEventListener('scroll', (e: Event) => {
+          if (e.target) {
+            const leftScroll = (e.target as HTMLDivElement).scrollLeft;
+            const wrapper = wsDisplay.getWrapper();
+            const parent = wrapper.parentElement;
+            if (parent) {
+              parent.scrollTo(leftScroll, 0);
+            }
+          }
+        });
+      }
     });
     
 };
+const updateLegend = () => {
+  const ctx = spectrogram.canvas.getContext("2d");
+  const startValue = rangeSlider.value[0];
+  const endValue = rangeSlider.value[1];
+  const legendHeight = fftSamples.value / 2;
+  var scale = d3.scaleLinear().domain([startValue, endValue]).range([0, legendHeight]);
+  var stepSize = (endValue - startValue) / 10; // You can adjust the number of labels as needed
+  if (ctx) {
+    // Add number labels at regular intervals
+    ctx.fillStyle = "white";
+    ctx.font = `30px Arial`;
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth= legendHeight / 1000;
+    for (var i = startValue; i <= endValue; i += stepSize) {
+      const yPosition = legendHeight - scale(i);
+      ctx.fillText(`${(i / 1000).toFixed(1)}kHz`, 0, yPosition);
+      ctx.beginPath();
+      ctx.moveTo(0, yPosition);
+      ctx.lineTo(spectrogram.canvas.width, yPosition);
+      ctx.stroke();
+    }
+  }
+};
+
 onMounted(() => init());
 const updateSpectro = () => {
   spectrogram.frequencyMax = rangeSlider.value[1];
     spectrogram.frequencyMin = rangeSlider.value[0];
-    console.log('update spectro');
     spectrogram.fftSamples = fftSamples.value;
     spectrogram.windowFunc = windowFunc.value === 'default' ? undefined : windowFunc.value;
+    spectrogram.height = fftSamples.value / 2;
     const decodedData = ws.getDecodedData();
     if (decodedData) {
         spectrogram.drawSpectrogram(spectrogram.getFrequencies(decodedData));
     }
+    //resizeCanvas();
+    nextTick(() => updateLegend());
+
 
 };
 watch([fftSamples, windowFunc], () => {
   updateSpectro();
-  resizeCanvas();
+  //resizeCanvas();
+  //spectrogram.canvas.style.height = '500px';
 });
 
 const waveformEl: Ref<HTMLDivElement | null> = ref(null);
 const zoom = () => {
-if (ws) {
-ws.zoom(zoomVal.value);
+if (wsDisplay) {
+  wsDisplay.zoom(zoomVal.value);
+  const width  = wsDisplay.getWrapper().style.width;
+  spectrogram.wrapper.style.overflow = 'auto';
+  spectrogram.canvas.style.width = width;
+  spectrogram.width = width;
 }
 
 };
@@ -135,6 +190,7 @@ ws.zoom(zoomVal.value);
 
 <template>
   <div ref="waveformEl" id="waveform" />
+  <div id="waveformhidden" />
   <div
     id="spectrogram"
   />
@@ -148,7 +204,7 @@ ws.zoom(zoomVal.value);
       align="center"
       justify="center"
     >
-    <v-slider label="zoom" v-model="zoomVal" step="1" min="10" max="1000" @update:model-value="zoom()" />
+    <v-slider label="zoom" v-model="zoomVal" step="1" min="100" max="1000" @update:model-value="zoom()" />
     </v-row>
 
     <v-row
