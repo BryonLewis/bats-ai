@@ -1,9 +1,9 @@
 <script lang="ts" setup>
-import { defineComponent, inject, computed, onMounted, ref, watch, PropType, Ref, nextTick } from 'vue';
+import { onMounted, ref, watch, Ref, nextTick } from 'vue';
 import WaveSurfer from 'wavesurfer.js';
 import Spectrogram from 'wavesurfer.js/dist/plugins/spectrogram';
 import * as d3 from 'd3';
-const media = './CORA-74449729.wav';
+const media = './530_ARMI2_20210528_235327_474.WAV';
 type SpectroWindowFunc = "bartlett" | "bartlettHann" | "blackman" | "cosine" | "gauss" | "hamming" | "hann" | "lanczoz" | "rectangular" | "triangular" | undefined;
 type CustomSpectro = Spectrogram & 
 { frequencyMin: number; frequencyMax: number;
@@ -89,9 +89,9 @@ const init = () => {
         labels: true,
         splitChannels: false,
         colorMap: colors,
+        height: 500,
         fftSamples: fftSamples.value
     }) as CustomSpectro;
-
     ws.registerPlugin(
         spectrogram,
     );
@@ -113,7 +113,6 @@ const init = () => {
           if (spectrogram.labelsEl) {
             spectrogram.labelsEl.style.display = 'none';
           }
-
         spectrogram.wrapper.addEventListener('scroll', (e: Event) => {
           if (e.target) {
             const leftScroll = (e.target as HTMLDivElement).scrollLeft;
@@ -128,25 +127,41 @@ const init = () => {
     });
     
 };
+let legendCanvas: HTMLCanvasElement | undefined;
 const updateLegend = () => {
-  const ctx = spectrogram.canvas.getContext("2d");
+  if (!legendCanvas) {
+    legendCanvas = document.createElement("canvas");
+    spectrogram.wrapper.prepend(legendCanvas);
+  } 
+  
+  if (legendCanvas) {
+    legendCanvas.width = spectrogram.width;
+    // We used the scaled height
+    legendCanvas.height = parseFloat(spectrogram.canvas.style.height.replace('px', ''));
+    legendCanvas.style.position = spectrogram.canvas.style.position;
+    legendCanvas.style.zIndex = spectrogram.canvas.style.zIndex + 1;
+
+  }
+
+  const ctx = legendCanvas.getContext("2d");
   const startValue = rangeSlider.value[0];
   const endValue = rangeSlider.value[1];
-  const legendHeight = fftSamples.value / 2;
+  const legendHeight = legendCanvas.height;
   var scale = d3.scaleLinear().domain([startValue, endValue]).range([0, legendHeight]);
   var stepSize = (endValue - startValue) / 10; // You can adjust the number of labels as needed
   if (ctx) {
+    ctx.clearRect(0, 0, legendCanvas.width, legendCanvas.height);
     // Add number labels at regular intervals
-    ctx.fillStyle = "white";
+    ctx.fillStyle = "black";
     ctx.font = `30px Arial`;
-    ctx.strokeStyle = 'white';
+    ctx.strokeStyle = 'black';
     ctx.lineWidth= legendHeight / 1000;
     for (var i = startValue; i <= endValue; i += stepSize) {
       const yPosition = legendHeight - scale(i);
       ctx.fillText(`${(i / 1000).toFixed(1)}kHz`, 0, yPosition);
       ctx.beginPath();
       ctx.moveTo(0, yPosition);
-      ctx.lineTo(spectrogram.canvas.width, yPosition);
+      ctx.lineTo(spectrogram.width, yPosition);
       ctx.stroke();
     }
   }
@@ -158,19 +173,19 @@ const updateSpectro = () => {
     spectrogram.frequencyMin = rangeSlider.value[0];
     spectrogram.fftSamples = fftSamples.value;
     spectrogram.windowFunc = windowFunc.value === 'default' ? undefined : windowFunc.value;
-    spectrogram.height = fftSamples.value / 2;
+    spectrogram.height = fftSamples.value / 2.0;
     const decodedData = ws.getDecodedData();
     if (decodedData) {
-        spectrogram.drawSpectrogram(spectrogram.getFrequencies(decodedData));
+        const frequencyData = spectrogram.getFrequencies(decodedData);
+        spectrogram.drawSpectrogram(frequencyData);
     }
-    //resizeCanvas();
+    resizeCanvas();
     nextTick(() => updateLegend());
 
 
 };
 watch([fftSamples, windowFunc], () => {
   updateSpectro();
-  //resizeCanvas();
   //spectrogram.canvas.style.height = '500px';
 });
 
@@ -181,7 +196,9 @@ if (wsDisplay) {
   const width  = wsDisplay.getWrapper().style.width;
   spectrogram.wrapper.style.overflow = 'auto';
   spectrogram.canvas.style.width = width;
-  spectrogram.width = width;
+  spectrogram.width = parseFloat(width);
+  resizeCanvas();
+  nextTick(() => updateLegend());
 }
 
 };
@@ -189,7 +206,10 @@ if (wsDisplay) {
 </script>
 
 <template>
-  <div ref="waveformEl" id="waveform" />
+  <div
+    id="waveform"
+    ref="waveformEl"
+  />
   <div id="waveformhidden" />
   <div
     id="spectrogram"
@@ -199,12 +219,19 @@ if (wsDisplay) {
     id="controls"
     class="pt-4"
   >
-  <v-row
+    <v-row
       dense
       align="center"
       justify="center"
     >
-    <v-slider label="zoom" v-model="zoomVal" step="1" min="100" max="1000" @update:model-value="zoom()" />
+      <v-slider
+        v-model="zoomVal"
+        label="zoom"
+        step="1"
+        min="100"
+        max="1000"
+        @update:model-value="zoom()"
+      />
     </v-row>
 
     <v-row
@@ -226,25 +253,6 @@ if (wsDisplay) {
           <span style="min-width: 35px"> {{ rangeSlider[1].toFixed(0) }}</span>
         </template>
       </v-range-slider>
-
-      <!-- <v-text-field
-        v-model.number="frequencyMin"
-        type="numer"
-        :min="0"
-        :max="sampleRate/2.0"
-        label="Freq Min"
-        class="mx-2"
-        @change="updateSpectro()"
-      />
-      <v-text-field
-        v-model.number="frequencyMax"
-        type="number"
-        :min="0"
-        :max="sampleRate/2.0"
-        label="Freq Max"
-        class="mx-2"
-        @change="updateSpectro()"
-      /> -->
     </v-row>
     <v-row>
       <v-select
