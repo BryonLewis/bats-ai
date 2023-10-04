@@ -50,15 +50,17 @@ const rangeSlider = ref([0, 128000]);
 
 const zoomVal = ref(100);
 
+const verticalZoom  = ref(500);
+
 const resizeCanvas = () => {
     if (spectrogram.canvas) {
-      spectrogram.canvas.style.height = '500px';
+      spectrogram.canvas.style.height = `${verticalZoom.value}px`;
     }
     if (spectrogram.labelsEl) {
       spectrogram.labelsEl.style.display = 'none';
     }
     if (spectrogram.wrapper) {
-        spectrogram.wrapper.style.maxHeight = '500px';
+        spectrogram.wrapper.style.maxHeight = `${verticalZoom.value}px`;
 
     }
 };
@@ -70,6 +72,7 @@ const init = () => {
         progressColor: 'rgb(100, 0, 100)',
         url: media,
         hideScrollbar: true,
+        barHeight: 10,
         sampleRate: 256000,
         minPxPerSec: 100,
     });
@@ -125,7 +128,20 @@ const init = () => {
         });
       }
     });
-    
+    spectrogram.wrapper.addEventListener('wheel', (e: WheelEvent) => {
+      e.preventDefault();
+      if (e.getModifierState('Control')) {
+        zoomVal.value += -e.deltaY ;
+        zoomVal.value = Math.max(zoomVal.value, 100);
+        zoomVal.value = Math.min(zoomVal.value, 1000);
+        zoom();
+      } else {
+       verticalZoom.value += -e.deltaY;
+       verticalZoom.value = Math.max(500, verticalZoom.value);
+       resizeCanvas();
+       nextTick(() => updateLegend());
+      }
+    });
 };
 let legendCanvas: HTMLCanvasElement | undefined;
 const updateLegend = () => {
@@ -135,7 +151,7 @@ const updateLegend = () => {
   } 
   
   if (legendCanvas) {
-    legendCanvas.width = spectrogram.width;
+    legendCanvas.width = Math.max(spectrogram.width, spectrogram.canvas.offsetWidth);
     // We used the scaled height
     legendCanvas.height = parseFloat(spectrogram.canvas.style.height.replace('px', ''));
     legendCanvas.style.position = spectrogram.canvas.style.position;
@@ -153,15 +169,15 @@ const updateLegend = () => {
     ctx.clearRect(0, 0, legendCanvas.width, legendCanvas.height);
     // Add number labels at regular intervals
     ctx.fillStyle = "black";
-    ctx.font = `30px Arial`;
+    ctx.font = `15px Arial`;
     ctx.strokeStyle = 'black';
-    ctx.lineWidth= legendHeight / 1000;
+    ctx.lineWidth= legendHeight / 500;
     for (var i = startValue; i <= endValue; i += stepSize) {
       const yPosition = legendHeight - scale(i);
       ctx.fillText(`${(i / 1000).toFixed(1)}kHz`, 0, yPosition);
       ctx.beginPath();
       ctx.moveTo(0, yPosition);
-      ctx.lineTo(spectrogram.width, yPosition);
+      ctx.lineTo(legendCanvas.width, yPosition);
       ctx.stroke();
     }
   }
