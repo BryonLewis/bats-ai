@@ -14,6 +14,7 @@ services:
       - 8000:8000
     depends_on:
       - postgres
+      - batsdb
       - rabbitmq
       - minio
 
@@ -37,3 +38,4 @@ services:
       - postgres
       - rabbitmq
       - minio
+      - batsdb
