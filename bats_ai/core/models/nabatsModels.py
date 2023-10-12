@@ -36,7 +36,6 @@ class AcousticBatch(models.Model):
         db_table = 'acoustic_batch'
         
 
-
 class AcousticFile(models.Model):
     id = models.BigAutoField(primary_key=True)
     recording_time = models.DateTimeField(blank=True, null=True)
@@ -68,9 +67,6 @@ class AcousticFileBatch(models.Model):
         managed = False
         db_table = 'acoustic_file_batch'
         unique_together = (('file', 'batch', 'auto'), ('file', 'batch', 'auto', 'manual'),)
-        
-
-
 class AcousticFileImage(models.Model):
     id = models.BigAutoField(primary_key=True)
     acoustic_file = models.ForeignKey(AcousticFile, models.DO_NOTHING)
@@ -140,8 +136,6 @@ class Software(models.Model):
     class Meta:
         managed = False
         db_table = 'software'
-
-
 
 class Survey(models.Model):
     project = models.ForeignKey(Project, models.DO_NOTHING)

@@ -1,4 +1,4 @@
-from bats_ai.core.models.nabatsModels import Classifier, Species, AcousticFile, AcousticBatch, AcousticFileBatch, AcousticFileImage, Project
+from bats_ai.core.models.nabatsModels import Classifier, Species, AcousticFile, AcousticBatch, AcousticFileBatch, AcousticFileImage, Project, EventGeometry, Software, Survey, SurveyEvent, SurveyType
 from django.contrib import admin
 from django.utils.html import format_html
 import base64
@@ -19,6 +19,11 @@ class AccousticFileAdmin(admin.ModelAdmin):
 class AcousticBatchAdmin(admin.ModelAdmin):
     list_display = ('survey_event', 'survey_type', 'software', 'classifier', 'created_date', 'processed_date', 'processing_notes', 'transaction_uuid')
 
+@admin.register(AcousticFileBatch)
+class AcousticFileBatchAdmin(admin.ModelAdmin):
+    list_display = ('id', 'file', 'batch', 'auto', 'manual', 'recording_night', 'vetter')
+
+
 @admin.register(AcousticFileImage)
 class AcousticFileImageAdmin(admin.ModelAdmin):
     list_display = ('id', 'acoustic_file', 'image_spectro', 'offset_milliseconds', 'frequency')
@@ -29,3 +34,25 @@ class AcousticFileImageAdmin(admin.ModelAdmin):
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
     list_display = ('project_key', 'project_name', 'description', 'created_date', 'organization_id', 'sample_design_id', 'sample_design_details', 'sample_frame_id', 'soft_delete', 'archive', 'grts_priority', 'test', 'protocols', 'endangered', 'control', 'batamp')
+
+@admin.register(EventGeometry)
+class EventGeometryAdmin(admin.ModelAdmin):
+    list_display = ('name', 'description', 'survey_type', 'geom', 'project_id', 'created_date', 'transaction_uuid')
+
+@admin.register(Software)
+class SoftwareAdmin(admin.ModelAdmin):
+    list_display = ('name', 'developer', 'version_number')
+
+
+@admin.register(Survey)
+class SurveyAdmin(admin.ModelAdmin):
+    list_display = ('project', 'start_date', 'grts_cell_id', 'sample_frame', 'transaction_uuid', 'grts_id')
+
+
+@admin.register(SurveyEvent)
+class SurveyEventAdmin(admin.ModelAdmin):
+    list_display = ('id', 'survey', 'survey_type', 'event_geometry', 'transaction_uuid', 'start_time', 'end_time', 'created_date', 'modified_date', 'created_by', 'uuid')
+
+@admin.register(SurveyType)
+class SurveyTypeAdmin(admin.ModelAdmin):
+    list_display = ('description', 'map_color')
