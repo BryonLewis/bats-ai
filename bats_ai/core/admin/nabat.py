@@ -26,10 +26,14 @@ class AcousticFileBatchAdmin(admin.ModelAdmin):
 
 @admin.register(AcousticFileImage)
 class AcousticFileImageAdmin(admin.ModelAdmin):
-    list_display = ('id', 'acoustic_file', 'image_spectro', 'offset_milliseconds', 'frequency')
+    list_display = ('id', 'acoustic_file', 'audio_file', 'image_spectro', 'offset_milliseconds', 'frequency')
     readonly_fields = ["image_spectro",]
+    
     def image_spectro(self, obj):
         return format_html('<img src="data:;base64,{}">', obj.image)
+    
+    def audio_file(self, obj):
+        return obj.acoustic_file.file_name
 
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):

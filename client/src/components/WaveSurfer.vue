@@ -2,8 +2,10 @@
 import { onMounted, ref, watch, Ref, nextTick } from 'vue';
 import WaveSurfer from 'wavesurfer.js';
 import Spectrogram from 'wavesurfer.js/dist/plugins/spectrogram';
+import TimelinePlugin from 'wavesurfer.js/dist/plugins/timeline';
+import { drawAnnotation, AudioAnnotation } from './WaveSurferUtils/utils';
 import * as d3 from 'd3';
-const media = './530_ARMI2_20210528_235327_474.WAV';
+const media = './3517_SE_20220627_224246_759.wav';
 type SpectroWindowFunc = "bartlett" | "bartlettHann" | "blackman" | "cosine" | "gauss" | "hamming" | "hann" | "lanczoz" | "rectangular" | "triangular" | undefined;
 type CustomSpectro = Spectrogram & 
 { frequencyMin: number; frequencyMax: number;
@@ -15,6 +17,19 @@ type CustomSpectro = Spectrogram &
   height: number;
   wrapper: HTMLDivElement;
 };
+
+const annotation: AudioAnnotation = {
+    start: 40,
+    end: 80,
+    minFreq: 37000,
+    maxFreq: 50000,
+};
+
+
+function formatTimeCallback(seconds: number,) {
+    const milliseconds = (seconds * 1000);
+    return `${milliseconds.toFixed(0)}ms`;
+}
 const generateColors = (steps: number) => {
         const baseColors = ['#0000FF','#00FFFF','#00FF00', '#FFFF00','#FF0000'];
         const positions = [0, 0.15, 0.30, 0.50, 0.75];
@@ -66,6 +81,17 @@ const resizeCanvas = () => {
 };
 const init = () => {
     const colors = generateColors(256);
+    const bottomTimline = TimelinePlugin.create({
+      timeInterval: 0.1,
+      primaryLabelInterval: 1,
+      secondaryLabelInterval: 0.5,
+      formatTimeCallback,
+      style: {
+        fontSize: '10px',
+        color: '#FF0000',
+      },
+    });
+
     wsDisplay = WaveSurfer.create({
         container: '#waveform',
         waveColor: 'rgb(200, 0, 200)',
@@ -75,6 +101,7 @@ const init = () => {
         barHeight: 10,
         sampleRate: 256000,
         minPxPerSec: 100,
+        plugins: [bottomTimline],
     });
 
     ws = WaveSurfer.create({
@@ -95,6 +122,7 @@ const init = () => {
         height: 500,
         fftSamples: fftSamples.value
     }) as CustomSpectro;
+
     ws.registerPlugin(
         spectrogram,
     );
@@ -111,7 +139,7 @@ const init = () => {
           frequencyMax.value = spectrogram.frequencyMax;
           sampleRate.value = spectrogram.buffer.sampleRate;
           windowFunc.value = spectrogram.windowFunc;
-          nextTick(() => updateLegend());
+          nextTick(() => updateDrawings());
           //resizeCanvas();
           if (spectrogram.labelsEl) {
             spectrogram.labelsEl.style.display = 'none';
@@ -133,7 +161,7 @@ const init = () => {
       if (e.getModifierState('Control')) {
         zoomVal.value += -e.deltaY ;
         zoomVal.value = Math.max(zoomVal.value, 100);
-        zoomVal.value = Math.min(zoomVal.value, 1000);
+        zoomVal.value = Math.min(zoomVal.value, 5000);
         zoom();
       } else {
        verticalZoom.value += -e.deltaY;
@@ -163,8 +191,36 @@ const updateLegend = () => {
   const startValue = rangeSlider.value[0];
   const endValue = rangeSlider.value[1];
   const legendHeight = legendCanvas.height;
-  var scale = d3.scaleLinear().domain([startValue, endValue]).range([0, legendHeight]);
-  var stepSize = (endValue - startValue) / 10; // You can adjust the number of labels as needed
+  const scale = d3.scaleLinear().domain([startValue, endValue]).range([0, legendHeight]);
+  const stepSize = (endValue - startValue) / 10; // You can adjust the number of labels as needed
+  const outsidelabel = document.getElementById('outside-label') as HTMLCanvasElement;
+  const spectroEl = document.getElementById('spectrogram');
+  if (outsidelabel && spectroEl) {
+    const rect = spectroEl.getBoundingClientRect();
+    outsidelabel.style.left = `${rect.left - 75}px`;
+    outsidelabel.style.top = `${rect.top + window.scrollY}px`;
+    outsidelabel.width = 75;
+    outsidelabel.height = spectrogram.canvas.height;
+    const labelCtx = outsidelabel.getContext('2d');
+    if (labelCtx) {
+      labelCtx.clearRect(0, 0, outsidelabel.width, legendCanvas.height);
+      labelCtx.fillStyle = "black";
+      labelCtx.font = `15px Arial`;
+      labelCtx.strokeStyle = 'black';
+      labelCtx.lineWidth= legendHeight / 500;
+      for (let i = startValue; i <= endValue; i += stepSize) {
+        const yPosition = legendHeight - scale(i);
+        labelCtx.fillText(`${(i / 1000).toFixed(1)}kHz`, 0, yPosition);
+        labelCtx.beginPath();
+        labelCtx.moveTo(0, yPosition);
+        labelCtx.lineTo(outsidelabel.width, yPosition);
+        labelCtx.stroke();
+
+      }
+
+    }
+
+  }
   if (ctx) {
     ctx.clearRect(0, 0, legendCanvas.width, legendCanvas.height);
     // Add number labels at regular intervals
@@ -172,15 +228,21 @@ const updateLegend = () => {
     ctx.font = `15px Arial`;
     ctx.strokeStyle = 'black';
     ctx.lineWidth= legendHeight / 500;
-    for (var i = startValue; i <= endValue; i += stepSize) {
+    for (let i = startValue; i <= endValue; i += stepSize) {
       const yPosition = legendHeight - scale(i);
-      ctx.fillText(`${(i / 1000).toFixed(1)}kHz`, 0, yPosition);
+      //ctx.fillText(`${(i / 1000).toFixed(1)}kHz`, 0, yPosition);
       ctx.beginPath();
       ctx.moveTo(0, yPosition);
       ctx.lineTo(legendCanvas.width, yPosition);
       ctx.stroke();
     }
   }
+};
+
+const updateDrawings = () => {
+  updateLegend();
+  const duration = spectrogram.buffer.duration * 1000; //ms
+  drawAnnotation(spectrogram.canvas, {duration, minFreq: spectrogram.frequencyMin, maxFreq: spectrogram.frequencyMax }, annotation);
 };
 
 onMounted(() => init());
@@ -196,7 +258,7 @@ const updateSpectro = () => {
         spectrogram.drawSpectrogram(frequencyData);
     }
     resizeCanvas();
-    nextTick(() => updateLegend());
+    nextTick(() => updateDrawings());
 
 
 };
@@ -214,7 +276,7 @@ if (wsDisplay) {
   spectrogram.canvas.style.width = width;
   spectrogram.width = parseFloat(width);
   resizeCanvas();
-  nextTick(() => updateLegend());
+  nextTick(() => updateDrawings());
 }
 
 };
@@ -222,14 +284,17 @@ if (wsDisplay) {
 </script>
 
 <template>
-  <div
-    id="waveform"
-    ref="waveformEl"
-  />
-  <div id="waveformhidden" />
-  <div
-    id="spectrogram"
-  />
+  <v-container>
+    <div
+      id="waveform"
+      ref="waveformEl"
+    />
+    <div id="waveformhidden" />
+    <div
+      id="spectrogram"
+    />
+    <canvas id="outside-label" />
+  </v-container>
   <v-container
     v-if="ready"
     id="controls"
@@ -245,7 +310,7 @@ if (wsDisplay) {
         label="zoom"
         step="1"
         min="100"
-        max="1000"
+        max="5000"
         @update:model-value="zoom()"
       />
     </v-row>
@@ -286,3 +351,12 @@ if (wsDisplay) {
     </v-row>
   </v-container>
 </template>
+
+<style scoped>
+#outside-label {
+  position: absolute;
+}
+#spectrogram {
+  overflow: visible;
+}
+</style>
