@@ -28,6 +28,9 @@ jobs:
         ports:
           - 9000:9000
     steps:
+      - name: Install system dependencies
+        run: apt-fast install --no-install-recommends --yes
+          libgdal30
       - uses: actions/checkout@v2
       - name: Set up Python
         uses: actions/setup-python@v2

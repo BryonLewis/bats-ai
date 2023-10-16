@@ -1,3 +1,6 @@
 from .image import ImageAdmin
-
-__all__ = ['ImageAdmin']
+from .nabat import Classifier
+__all__ = [
+    'ImageAdmin',
+    'Classifier',
+    ]
