@@ -4,6 +4,7 @@ import WaveSurfer from 'wavesurfer.js';
 import Spectrogram from 'wavesurfer.js/dist/plugins/spectrogram';
 import TimelinePlugin from 'wavesurfer.js/dist/plugins/timeline';
 import { drawAnnotation, AudioAnnotation } from './WaveSurferUtils/utils';
+import ToolTip from './WaveSurferUtils/ToolTip.vue';
 import * as d3 from 'd3';
 const media = './3517_SE_20220627_224246_759.wav';
 type SpectroWindowFunc = "bartlett" | "bartlettHann" | "blackman" | "cosine" | "gauss" | "hamming" | "hann" | "lanczoz" | "rectangular" | "triangular" | undefined;
@@ -79,6 +80,11 @@ const resizeCanvas = () => {
 
     }
 };
+
+const spectrogramCanvas: Ref<null | HTMLCanvasElement> = ref(null);
+const spectrogramWrapper: Ref<null | HTMLDivElement> = ref(null);
+const xScale = ref(1);
+const yScale = ref(1);
 const init = () => {
     const colors = generateColors(256);
     const bottomTimline = TimelinePlugin.create({
@@ -159,7 +165,7 @@ const init = () => {
     spectrogram.wrapper.addEventListener('wheel', (e: WheelEvent) => {
       e.preventDefault();
       if (e.getModifierState('Control')) {
-        zoomVal.value += -e.deltaY ;
+        zoomVal.value += -e.deltaY ;chrome;
         zoomVal.value = Math.max(zoomVal.value, 100);
         zoomVal.value = Math.min(zoomVal.value, 5000);
         zoom();
@@ -179,6 +185,8 @@ const updateLegend = () => {
   } 
   
   if (legendCanvas) {
+    spectrogramCanvas.value = spectrogram.canvas;
+    spectrogramWrapper.value = spectrogram.wrapper;
     legendCanvas.width = Math.max(spectrogram.width, spectrogram.canvas.offsetWidth);
     // We used the scaled height
     legendCanvas.height = parseFloat(spectrogram.canvas.style.height.replace('px', ''));
@@ -238,11 +246,14 @@ const updateLegend = () => {
     }
   }
 };
-
+const duration = ref(0);
 const updateDrawings = () => {
   updateLegend();
-  const duration = spectrogram.buffer.duration * 1000; //ms
-  drawAnnotation(spectrogram.canvas, {duration, minFreq: spectrogram.frequencyMin, maxFreq: spectrogram.frequencyMax }, annotation);
+  duration.value = spectrogram.buffer.duration * 1000; //ms
+  console.log(`width: ${spectrogram.wrapper.clientWidth} height: ${spectrogram.wrapper.clientHeight} ${duration.value} ${spectrogram.frequencyMax - spectrogram.frequencyMin}`);
+  xScale.value = duration.value / spectrogram.wrapper.clientWidth;
+  yScale.value = (spectrogram.frequencyMax - spectrogram.frequencyMin)/ spectrogram.wrapper.clientHeight;
+  drawAnnotation(spectrogram.canvas, {duration: duration.value, minFreq: spectrogram.frequencyMin, maxFreq: spectrogram.frequencyMax }, annotation);
 };
 
 onMounted(() => init());
@@ -284,7 +295,17 @@ if (wsDisplay) {
 </script>
 
 <template>
-  <v-container>
+  <v-container
+    style="max-width: 90%;"
+    @resize="updateSpectro()"
+  >
+    <tool-tip
+      v-if="spectrogramCanvas && spectrogramWrapper"
+      :canvas="spectrogramCanvas"
+      :wrapper="spectrogramWrapper"
+      :x-scale="xScale"
+      :y-scale="yScale"
+    />
     <div
       id="waveform"
       ref="waveformEl"
