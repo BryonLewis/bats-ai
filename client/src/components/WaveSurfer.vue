@@ -165,7 +165,7 @@ const init = () => {
     spectrogram.wrapper.addEventListener('wheel', (e: WheelEvent) => {
       e.preventDefault();
       if (e.getModifierState('Control')) {
-        zoomVal.value += -e.deltaY ;chrome;
+        zoomVal.value += -e.deltaY ;
         zoomVal.value = Math.max(zoomVal.value, 100);
         zoomVal.value = Math.min(zoomVal.value, 5000);
         zoom();
@@ -250,7 +250,7 @@ const duration = ref(0);
 const updateDrawings = () => {
   updateLegend();
   duration.value = spectrogram.buffer.duration * 1000; //ms
-  console.log(`width: ${spectrogram.wrapper.clientWidth} height: ${spectrogram.wrapper.clientHeight} ${duration.value} ${spectrogram.frequencyMax - spectrogram.frequencyMin}`);
+  console.log(`width: ${.wrapper.clientWidth} height: ${spectrogram.wrapper.clientHeight} ${duration.value} ${spectrogram.frequencyMax - spectrogram.frequencyMin}`);
   xScale.value = duration.value / spectrogram.wrapper.clientWidth;
   yScale.value = (spectrogram.frequencyMax - spectrogram.frequencyMin)/ spectrogram.wrapper.clientHeight;
   drawAnnotation(spectrogram.canvas, {duration: duration.value, minFreq: spectrogram.frequencyMin, maxFreq: spectrogram.frequencyMax }, annotation);
