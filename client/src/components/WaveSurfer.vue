@@ -171,6 +171,7 @@ const init = () => {
         zoom();
       } else {
        verticalZoom.value += -e.deltaY;
+       verticalZoom.value = Math.min(3000, verticalZoom.value);
        verticalZoom.value = Math.max(500, verticalZoom.value);
        resizeCanvas();
        nextTick(() => updateLegend());
@@ -250,7 +251,6 @@ const duration = ref(0);
 const updateDrawings = () => {
   updateLegend();
   duration.value = spectrogram.buffer.duration * 1000; //ms
-  console.log(`width: ${.wrapper.clientWidth} height: ${spectrogram.wrapper.clientHeight} ${duration.value} ${spectrogram.frequencyMax - spectrogram.frequencyMin}`);
   xScale.value = duration.value / spectrogram.wrapper.clientWidth;
   yScale.value = (spectrogram.frequencyMax - spectrogram.frequencyMin)/ spectrogram.wrapper.clientHeight;
   drawAnnotation(spectrogram.canvas, {duration: duration.value, minFreq: spectrogram.frequencyMin, maxFreq: spectrogram.frequencyMax }, annotation);
