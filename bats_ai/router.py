@@ -1,4 +1,18 @@
-from bats_ai.core.models.nabatsModels import AcousticBatch, AcousticFile, AcousticFileBatch, AcousticFileImage, Classifier, EventGeometry, Project, Software, Species, Survey, SurveyEvent, SurveyType
+from bats_ai.core.models.nabatsModels import (
+    AcousticBatch,
+    AcousticFile,
+    AcousticFileBatch,
+    AcousticFileImage,
+    Classifier,
+    EventGeometry,
+    Project,
+    Software,
+    Species,
+    Survey,
+    SurveyEvent,
+    SurveyType,
+)
+
 
 class BatsDBRouter:
     """
@@ -6,8 +20,20 @@ class BatsDBRouter:
     auth and contenttypes applications.
     """
 
-    ROUTED_MODELS = [AcousticBatch, AcousticFile, AcousticFileBatch, AcousticFileImage, Classifier, EventGeometry, Project, Software, Species, Survey, SurveyEvent, SurveyType]
-
+    ROUTED_MODELS = [
+        AcousticBatch,
+        AcousticFile,
+        AcousticFileBatch,
+        AcousticFileImage,
+        Classifier,
+        EventGeometry,
+        Project,
+        Software,
+        Species,
+        Survey,
+        SurveyEvent,
+        SurveyType,
+    ]
 
     def db_for_read(self, model, **hints):
         """
@@ -30,9 +56,6 @@ class BatsDBRouter:
         Allow relations if a model in the scoring app is
         involved.
         """
-        if (
-            obj1 in self.ROUTED_MODELS
-            or obj2 in self.ROUTED_MODELS
-        ):
+        if obj1 in self.ROUTED_MODELS or obj2 in self.ROUTED_MODELS:
             return True
         return None

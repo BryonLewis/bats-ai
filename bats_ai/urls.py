@@ -5,12 +5,30 @@ from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions, routers
 
-from bats_ai.core.rest import ImageViewSet
+from bats_ai.core.rest import (
+    AcousticBatchViewSet,
+    AcousticFileBatchViewSet,
+    AcousticFileViewSet,
+    ImageViewSet,
+    ProjectViewSet,
+    SpeciesViewSet,
+    SurveyEventViewSet,
+    SurveyViewSet,
+)
 from bats_ai.core.views import GalleryView, image_summary
 
 router = routers.SimpleRouter()
 router.register(r'images', ImageViewSet)
+router.register(r'projects', ProjectViewSet)
+router.register(r'surveys', SurveyViewSet)
+router.register(r'survey_events', SurveyEventViewSet)
+router.register(r'species', SpeciesViewSet)
+router.register(r'acoustic_batch', AcousticBatchViewSet)
+router.register(r'acoustic_file_batch', AcousticFileBatchViewSet)
+router.register(r'acoustic_file', AcousticFileViewSet)
 
+
+# Some more specific Api Requests
 # OpenAPI generation
 schema_view = get_schema_view(
     openapi.Info(title='bats-ai', default_version='v1', description=''),
