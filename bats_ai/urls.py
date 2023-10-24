@@ -14,6 +14,7 @@ from bats_ai.core.rest import (
     SpeciesViewSet,
     SurveyEventViewSet,
     SurveyViewSet,
+    Spectrogram,
 )
 from bats_ai.core.views import GalleryView, image_summary
 
@@ -46,6 +47,7 @@ urlpatterns = [
     path('api/docs/swagger/', schema_view.with_ui('swagger'), name='docs-swagger'),
     path('summary/', image_summary, name='image-summary'),
     path('gallery/', GalleryView.as_view(), name='gallery'),
+    path('spectrogram/<int:pk>/', Spectrogram.as_view())
 ]
 
 if settings.DEBUG:

@@ -6,6 +6,7 @@ from .projects import ProjectViewSet
 from .species import SpeciesViewSet
 from .survey_events import SurveyEventViewSet
 from .surveys import SurveyViewSet
+from .spectrogram import Spectrogram
 
 __all__ = [
     'ImageViewSet',
@@ -15,4 +16,5 @@ __all__ = [
     'AcousticBatchViewSet',
     'AcousticFileBatchViewSet',
     'SpeciesViewSet',
+    'Spectrogram',
 ]
