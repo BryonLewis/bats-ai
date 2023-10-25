@@ -1,8 +1,6 @@
 from django.contrib.auth.models import User
 import factory.django
 
-from bats_ai.core.models import Image
-
 
 class UserFactory(factory.django.DjangoModelFactory):
     class Meta:
