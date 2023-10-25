@@ -1,5 +1,6 @@
 from .acoustic_batch import AcousticBatchViewSet
 from .acoustic_file_batch import AcousticFileBatchViewSet
+from .acoustic_file import AcousticFileViewSet
 from .image import ImageViewSet
 from .projects import ProjectViewSet
 from .species import SpeciesViewSet
@@ -13,6 +14,7 @@ __all__ = [
     'SurveyViewSet',
     'SurveyEventViewSet',
     'AcousticBatchViewSet',
+    'AcousticFileViewSet',
     'AcousticFileBatchViewSet',
     'SpeciesViewSet',
     'Spectrogram',
