@@ -1,4 +1,3 @@
-
 from django.contrib import admin
 from django.utils.html import format_html
 
@@ -73,7 +72,7 @@ class AcousticFileImageAdmin(admin.ModelAdmin):
         'frequency',
     )
     readonly_fields = [
-        "image_spectro",
+        'image_spectro',
     ]
 
     def image_spectro(self, obj):

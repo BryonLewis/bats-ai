@@ -8,16 +8,16 @@ from bats_ai.core.models import SurveyEvent
 
 
 class SurveyEventSerializer(serializers.ModelSerializer):
-    surveyType = serializers.CharField(source='survey_type.description')
-    surveyTypeColor = serializers.CharField(source='survey_type.map_color')
+    survey_type_desc = serializers.CharField(source='survey_type.description')
+    survey_type_color = serializers.CharField(source='survey_type.map_color')
 
     class Meta:
         model = SurveyEvent
         fields = [
             'id',
             'survey',
-            'surveyType',
-            'surveyTypeColor',
+            'survey_type_desc',
+            'survey_type_color',
             'event_geometry',
             'start_time',
             'end_time',

@@ -8,23 +8,23 @@ from bats_ai.core.models import AcousticBatch
 
 
 class AcousticBatchSerializer(serializers.ModelSerializer):
-    surveyType = serializers.CharField(source='survey_type.description')
-    surveyTypeColor = serializers.CharField(source='survey_type.map_color')
-    softwareName = serializers.CharField(source='software.name')
-    softwareDeveloper = serializers.CharField(source='software.developer')
-    softwareVersion = serializers.CharField(source='software.version_number')
+    survey_type_desc = serializers.CharField(source='survey_type.description')
+    survey_type_color = serializers.CharField(source='survey_type.map_color')
+    software_name = serializers.CharField(source='software.name')
+    software_developer = serializers.CharField(source='software.developer')
+    software_version = serializers.CharField(source='software.version_number')
 
     class Meta:
         model = AcousticBatch
         fields = [
             'id',
             'survey_event',
-            'surveyType',
+            'survey_type_desc',
             'software',
-            'surveyTypeColor',
-            'softwareName',
-            'softwareDeveloper',
-            'softwareVersion',
+            'survey_type_color',
+            'software_name',
+            'software_developer',
+            'software_version',
             'processed_date',
             'processing_notes',
         ]

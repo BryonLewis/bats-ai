@@ -1,13 +1,10 @@
 import json
+
+from django.core.files.storage import default_storage
 from django.http import Http404, HttpResponse
 from rest_framework.views import APIView
-from django.core.files.storage import default_storage
-from bats_ai.core.models.nabatsModels import (
-    AcousticFile,
-    AcousticFileBatch,
-    AcousticFileImage,
-    SurveyEvent,
-)
+
+from bats_ai.core.models.nabatsModels import AcousticFile, AcousticFileBatch, AcousticFileImage
 
 
 class Spectrogram(APIView):
@@ -29,35 +26,36 @@ class Spectrogram(APIView):
         survey_event = acoustic_file.survey_event
         if survey_event:
             survey_type = survey_event.survey_type
-        
+
         batches = []
         for item in acoustic_file_batches:
-            sub_data = { 'vetter': item.vetter}
+            sub_data = {'vetter': item.vetter}
             if item.auto:
                 sub_data['auto'] = {
-                        'species': item.auto.species,
-                        'species_code': item.auto.species_code,
-                        'family': item.auto.family,
-                        'genus': item.auto.genus,
-                        'common_name': item.auto.common_name,
-                    }
+                    'species': item.auto.species,
+                    'species_code': item.auto.species_code,
+                    'family': item.auto.family,
+                    'genus': item.auto.genus,
+                    'common_name': item.auto.common_name,
+                }
             if item.manual:
                 sub_data['manual'] = {
-                        'species': item.manual.species,
-                        'species_code': item.manual.species_code,
-                        'family': item.manual.family,
-                        'genus': item.manual.genus,
-                        'common_name': item.manual.common_name,
-                    }
+                    'species': item.manual.species,
+                    'species_code': item.manual.species_code,
+                    'family': item.manual.family,
+                    'genus': item.manual.genus,
+                    'common_name': item.manual.common_name,
+                }
             batches.append(sub_data)
 
         annotations = []
         for item in file_images:
-            annotations.append({
-                'offset': item.offset_milliseconds,
-                'frequency': item.frequency,
-            })
-
+            annotations.append(
+                {
+                    'offset': item.offset_milliseconds,
+                    'frequency': item.frequency,
+                }
+            )
 
         # projectId Number is used in the S3 file path
         project_num = acoustic_file.project.pk
@@ -68,8 +66,7 @@ class Spectrogram(APIView):
             'filename': acoustic_file.file_name,
             'project': project_num,
             'annotations': annotations,
-            'batches': batches
-
+            'batches': batches,
         }
         if presigned_url:
             data['url'] = presigned_url
@@ -80,5 +77,5 @@ class Spectrogram(APIView):
                     'mapColor': survey_type.map_color,
                 }
             }
-        
+
         return HttpResponse(json.dumps(data))
