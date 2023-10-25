@@ -14,10 +14,3 @@ class UserFactory(factory.django.DjangoModelFactory):
     last_name = factory.Faker('last_name')
 
 
-class ImageFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = Image
-
-    name = factory.Faker('file_name', category='image')
-    blob = factory.django.FileField(data=b'fakeimagebytes', filename='fake.png')
-    owner = factory.SubFactory(UserFactory)

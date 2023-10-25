@@ -29,7 +29,7 @@ export default defineComponent({
     const time = ref(-1);
     const tooltipLocation = ref([0, 0]);
     const tooltipOffset = { x:10, y:10 };
-    let timeout: Node.timeout = 0;
+    let timeout: ReturnType<typeof setTimeout> = 0;
     const showTooltip = ref(false);
     // We need a mousemovement event listener
 
