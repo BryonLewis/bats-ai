@@ -30,7 +30,6 @@ class BatsAiMixin(ConfigMixin):
 
         # Install additional apps
         configuration.INSTALLED_APPS += [
-            's3_file_field',
             'django.contrib.gis',
         ]
 
