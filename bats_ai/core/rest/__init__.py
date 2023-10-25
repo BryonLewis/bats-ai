@@ -1,6 +1,6 @@
 from .acoustic_batch import AcousticBatchViewSet
-from .acoustic_file_batch import AcousticFileBatchViewSet
 from .acoustic_file import AcousticFileViewSet
+from .acoustic_file_batch import AcousticFileBatchViewSet
 from .image import ImageViewSet
 from .projects import ProjectViewSet
 from .species import SpeciesViewSet

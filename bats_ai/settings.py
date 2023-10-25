@@ -39,14 +39,14 @@ class BatsAiMixin(ConfigMixin):
         ] + configuration.MIDDLEWARE
 
     @property
-    def DATABASE_ROUTERS(self): # noqa
+    def DATABASE_ROUTERS(self):  # noqa
         if 'DJANGO_BATS_AI_DATABASE_URI' in os.environ:
             return ['bats_ai.router.BatsDBRouter']
         else:
             return []
 
     @property
-    def DATABASES(self): # noqa
+    def DATABASES(self):  # noqa
         db_val = values.DatabaseURLValue(
             alias='default',
             environ_prefix='DJANGO',
