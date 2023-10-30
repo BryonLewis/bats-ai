@@ -47,14 +47,12 @@ setup(
         'drf-yasg',
         # Production-only
         'django-composed-configuration[prod]>=0.20',
-        'django-s3-file-field[boto3]<1',
         'gunicorn',
     ],
     extras_require={
         'dev': [
             'django-composed-configuration[dev]>=0.18',
             'django-debug-toolbar',
-            'django-s3-file-field[minio]',
             'ipython',
             'tox',
         ]

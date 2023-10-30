@@ -3,7 +3,8 @@
 #   * Rearrange models' order
 #   * Make sure each model has one field with primary_key=True
 #   * Make sure each ForeignKey and OneToOneField has `on_delete` set to the desired behavior
-#   * Remove `managed = False` lines if you wish to allow Django to create, modify, and delete the table
+#   * Remove `managed = False` lines if you wish to allow
+#   * Django to create, modify, and delete the table
 # Feel free to rename the models, but don't rename db_table values or field names.
 from django.contrib.gis.db import models
 
@@ -19,7 +20,7 @@ class Species(models.Model):
     class Meta:
         managed = False
         db_table = 'species'
-        
+
 
 class AcousticBatch(models.Model):
     survey_event = models.ForeignKey('SurveyEvent', models.DO_NOTHING)
@@ -34,7 +35,7 @@ class AcousticBatch(models.Model):
     class Meta:
         managed = False
         db_table = 'acoustic_batch'
-        
+
 
 class AcousticFile(models.Model):
     id = models.BigAutoField(primary_key=True)
@@ -51,14 +52,18 @@ class AcousticFile(models.Model):
         managed = False
         db_table = 'acoustic_file'
         unique_together = (('project', 'file_name'),)
-        
+
 
 class AcousticFileBatch(models.Model):
     id = models.BigAutoField(primary_key=True)
     file = models.ForeignKey(AcousticFile, models.DO_NOTHING)
     batch = models.ForeignKey(AcousticBatch, models.DO_NOTHING)
-    auto = models.ForeignKey(Species, models.DO_NOTHING, related_name='%(class)s_species_auto', blank=True, null=True)
-    manual = models.ForeignKey(Species, models.DO_NOTHING, related_name='%(class)s_species_manual', blank=True, null=True)
+    auto = models.ForeignKey(
+        Species, models.DO_NOTHING, related_name='%(class)s_species_auto', blank=True, null=True
+    )
+    manual = models.ForeignKey(
+        Species, models.DO_NOTHING, related_name='%(class)s_species_manual', blank=True, null=True
+    )
     recording_night = models.DateField()
     vetter = models.CharField(max_length=255, blank=True, null=True)
 
@@ -66,10 +71,17 @@ class AcousticFileBatch(models.Model):
     class Meta:
         managed = False
         db_table = 'acoustic_file_batch'
-        unique_together = (('file', 'batch', 'auto'), ('file', 'batch', 'auto', 'manual'),)
+        unique_together = (
+            ('file', 'batch', 'auto'),
+            ('file', 'batch', 'auto', 'manual'),
+        )
+
+
 class AcousticFileImage(models.Model):
     id = models.BigAutoField(primary_key=True)
-    acoustic_file = models.ForeignKey(AcousticFile, models.DO_NOTHING)
+    acoustic_file = models.ForeignKey(
+        AcousticFile, models.DO_NOTHING, related_name='acoustic_file_image'
+    )
     offset_milliseconds = models.IntegerField()
     frequency = models.IntegerField()
     image = models.TextField()
@@ -77,7 +89,7 @@ class AcousticFileImage(models.Model):
     class Meta:
         managed = False
         db_table = 'acoustic_file_image'
-        
+
 
 class Classifier(models.Model):
     name = models.CharField(unique=True, max_length=100)
@@ -90,7 +102,7 @@ class Classifier(models.Model):
     class Meta:
         managed = False
         db_table = 'classifier'
-        
+
 
 class EventGeometry(models.Model):
     name = models.CharField(max_length=255, blank=True, null=True)
@@ -104,7 +116,7 @@ class EventGeometry(models.Model):
     class Meta:
         managed = False
         db_table = 'event_geometry'
-        
+
 
 class Project(models.Model):
     project_key = models.CharField(max_length=255)
@@ -127,7 +139,8 @@ class Project(models.Model):
     class Meta:
         managed = False
         db_table = 'project'
-        
+
+
 class Software(models.Model):
     name = models.CharField(max_length=50, blank=True, null=True)
     developer = models.CharField(max_length=100, blank=True, null=True)
@@ -136,6 +149,7 @@ class Software(models.Model):
     class Meta:
         managed = False
         db_table = 'software'
+
 
 class Survey(models.Model):
     project = models.ForeignKey(Project, models.DO_NOTHING)
@@ -149,7 +163,6 @@ class Survey(models.Model):
         managed = False
         db_table = 'survey'
         unique_together = (('project', 'grts_id'),)
-        
 
 
 class SurveyEvent(models.Model):
@@ -170,6 +183,7 @@ class SurveyEvent(models.Model):
         managed = False
         db_table = 'survey_event'
 
+
 class SurveyType(models.Model):
     description = models.CharField(max_length=255, blank=True, null=True)
     map_color = models.CharField(max_length=7, blank=True, null=True)
@@ -177,4 +191,3 @@ class SurveyType(models.Model):
     class Meta:
         managed = False
         db_table = 'survey_type'
-        
