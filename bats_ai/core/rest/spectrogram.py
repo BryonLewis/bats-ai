@@ -4,7 +4,12 @@ from django.core.files.storage import default_storage
 from django.http import Http404, HttpResponse
 from rest_framework.views import APIView
 
-from bats_ai.core.models.nabatsModels import AcousticFile, AcousticFileBatch, AcousticFileImage
+from bats_ai.core.models.nabatsModels import (
+    AcousticFile,
+    AcousticFileBatch,
+    AcousticFileImage,
+    SurveyEvent,
+)
 
 
 class Spectrogram(APIView):

@@ -1,12 +1,11 @@
 <script lang="ts" setup>
-import { onMounted, ref, watch, Ref, nextTick } from 'vue';
+import { onMounted, ref, watch, Ref, nextTick, defineProps, PropType, onUnmounted } from 'vue';
 import WaveSurfer from 'wavesurfer.js';
 import Spectrogram from 'wavesurfer.js/dist/plugins/spectrogram';
 import TimelinePlugin from 'wavesurfer.js/dist/plugins/timeline';
 import { drawAnnotation, AudioAnnotation } from './WaveSurferUtils/utils';
 import ToolTip from './WaveSurferUtils/ToolTip.vue';
 import * as d3 from 'd3';
-const media = './3517_SE_20220627_224246_759.wav';
 type SpectroWindowFunc = "bartlett" | "bartlettHann" | "blackman" | "cosine" | "gauss" | "hamming" | "hann" | "lanczoz" | "rectangular" | "triangular" | undefined;
 type CustomSpectro = Spectrogram & 
 { frequencyMin: number; frequencyMax: number;
@@ -25,6 +24,20 @@ const annotation: AudioAnnotation = {
     minFreq: 37000,
     maxFreq: 50000,
 };
+
+const props = defineProps({
+  media: {
+    type: String,
+    required: true,
+  },
+  annotations:{
+    type: Array as PropType<AudioAnnotation[]>,
+    required: false,
+    default: () => undefined,
+  }
+});
+
+
 
 
 function formatTimeCallback(seconds: number,) {
@@ -102,7 +115,7 @@ const init = () => {
         container: '#waveform',
         waveColor: 'rgb(200, 0, 200)',
         progressColor: 'rgb(100, 0, 100)',
-        url: media,
+        url: props.media,
         hideScrollbar: true,
         barHeight: 10,
         sampleRate: 256000,
@@ -114,7 +127,7 @@ const init = () => {
         container: '#waveformhidden',
         waveColor: 'rgb(200, 0, 200)',
         progressColor: 'rgb(100, 0, 100)',
-        url: media,
+        url: props.media,
         hideScrollbar: true,
         sampleRate: 256000,
         height: 0,
@@ -160,6 +173,7 @@ const init = () => {
             }
           }
         });
+        updateSpectro();
       }
     });
     spectrogram.wrapper.addEventListener('wheel', (e: WheelEvent) => {
@@ -204,10 +218,13 @@ const updateLegend = () => {
   const stepSize = (endValue - startValue) / 10; // You can adjust the number of labels as needed
   const outsidelabel = document.getElementById('outside-label') as HTMLCanvasElement;
   const spectroEl = document.getElementById('spectrogram');
-  if (outsidelabel && spectroEl) {
-    const rect = spectroEl.getBoundingClientRect();
-    outsidelabel.style.left = `${rect.left - 75}px`;
-    outsidelabel.style.top = `${rect.top + window.scrollY}px`;
+  const waveform = document.getElementById('waveform');
+  const container = document.getElementById('container');
+  if (outsidelabel && spectroEl && waveform && container) {
+    const rect = waveform.getBoundingClientRect();
+    const rect2 = spectroEl.getBoundingClientRect();
+    outsidelabel.style.left = `${-55}px`;
+    outsidelabel.style.top = `${ rect.height + 16}px`;
     outsidelabel.width = 75;
     outsidelabel.height = spectrogram.canvas.height;
     const labelCtx = outsidelabel.getContext('2d');
@@ -253,7 +270,11 @@ const updateDrawings = () => {
   duration.value = spectrogram.buffer.duration * 1000; //ms
   xScale.value = duration.value / spectrogram.wrapper.clientWidth;
   yScale.value = (spectrogram.frequencyMax - spectrogram.frequencyMin)/ spectrogram.wrapper.clientHeight;
-  drawAnnotation(spectrogram.canvas, {duration: duration.value, minFreq: spectrogram.frequencyMin, maxFreq: spectrogram.frequencyMax }, annotation);
+  if (props.annotations) {
+    props.annotations.forEach((annotation) => {
+      drawAnnotation(spectrogram.canvas, {duration: duration.value, minFreq: spectrogram.frequencyMin, maxFreq: spectrogram.frequencyMax }, annotation);
+    });
+  }
 };
 
 onMounted(() => init());
@@ -292,12 +313,18 @@ if (wsDisplay) {
 
 };
 
+onUnmounted(() => {
+  wsDisplay.destroy();
+  ws.destroy();
+});
+
 </script>
 
 <template>
   <v-container
-    style="max-width: 90%;"
+    style="max-width: 90%; position: relative;"
     @resize="updateSpectro()"
+    id="container"
   >
     <tool-tip
       v-if="spectrogramCanvas && spectrogramWrapper"
