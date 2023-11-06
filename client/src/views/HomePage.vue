@@ -1,35 +1,20 @@
 <script lang="ts">
-import { defineComponent, inject, computed } from 'vue';
-import OAuthClient from '@girder/oauth-client';
+import { defineComponent } from 'vue';
 
 export default defineComponent({
   setup() {
-    const oauthClient = inject<OAuthClient>('oauthClient');
-    if (oauthClient === undefined) {
-      throw new Error('Must provide "oauthClient" into component.');
-    }
-
-    const loginText = computed(() => (oauthClient.isLoggedIn ? 'Logout' : 'Login'));
-    const logInOrOut = () => {
-      if (oauthClient.isLoggedIn) {
-        oauthClient.logout();
-      } else {
-        oauthClient.redirectToLogin();
-      }
-    };
-
-    return { oauthClient, loginText, logInOrOut };
+    return { };
   },
 });
 </script>
 
 <template>
-  <v-app-bar app>
-    <v-spacer />
-    <v-btn
-      @click="logInOrOut"
-    >
-      {{ loginText }}
-    </v-btn>
-  </v-app-bar>
+  <v-card>
+    <v-card-title>
+      Bat-AI
+    </v-card-title>
+    <v-card-text>
+      For right now please select "Files" to open a specific file in the spectrogram viewer or go to "Species" to view a list of species in the system.
+    </v-card-text>
+  </v-card>
 </template>

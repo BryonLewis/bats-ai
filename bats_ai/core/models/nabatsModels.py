@@ -56,7 +56,7 @@ class AcousticFile(models.Model):
 
 class AcousticFileBatch(models.Model):
     id = models.BigAutoField(primary_key=True)
-    file = models.ForeignKey(AcousticFile, models.DO_NOTHING)
+    file = models.ForeignKey(AcousticFile, models.DO_NOTHING, related_name='acoustic_file_batch')
     batch = models.ForeignKey(AcousticBatch, models.DO_NOTHING)
     auto = models.ForeignKey(
         Species, models.DO_NOTHING, related_name='%(class)s_species_auto', blank=True, null=True

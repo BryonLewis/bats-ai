@@ -1,22 +1,57 @@
-import { createWebHistory, RouterOptions } from 'vue-router';
+import { createRouter, createWebHistory, RouteLocationNormalized } from 'vue-router';
 import HomePage from '../views/HomePage.vue';
 import WaveSurfer from '../components/WaveSurfer.vue';
-function makeOptions(): RouterOptions {
-  return {
+import Files from '../views/FilesView.vue';
+import Species from '../views/SpeciesView.vue';
+import FileSpectro from '../views/FileSpectro.vue';
+
+// import oauthClient from '../plugins/Oauth';
+
+function beforeEach(
+  to: RouteLocationNormalized,
+  _: RouteLocationNormalized,
+  next: (route?: string) => void,
+) {
+  // if (!oauthClient.isLoggedIn && to.name !== '/') {
+  //   next('/');
+  // }
+  // if (oauthClient.isLoggedIn && to.name === '/') {
+  //   next('/');
+  // }
+  next();
+}
+
+
+function routerInit(){
+  const router  = createRouter({
     history: createWebHistory(),
     routes: [
       {
         path: '/',
-        // component: HomePage,
         component: HomePage,
       },
       {
         path: '/wavesurfer',
-        // component: HomePage,
         component: WaveSurfer,
       },
+      {
+        path: '/files',
+        component: Files,
+      },
+      {
+        path: '/species',
+        component: Species,
+      },
+      {
+        path: '/spectrogram/:id',
+        component: FileSpectro,
+        props: true,
+      },
+
     ],
-  };
+  });
+  router.beforeEach(beforeEach);
+  return router;
 }
 
-export default makeOptions;
+export default routerInit;
