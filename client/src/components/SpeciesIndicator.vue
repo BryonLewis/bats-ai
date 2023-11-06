@@ -1,6 +1,6 @@
 <script lang="ts">
-import { defineComponent, PropType, ref, Ref} from 'vue';
-import { getAcoustFilesS3Exists, AcousticFiles, SpectrogramBatches } from '../api/api';
+import { defineComponent, PropType} from 'vue';
+import { SpectrogramBatches } from '../api/api';
 
 export default defineComponent({
   props: {

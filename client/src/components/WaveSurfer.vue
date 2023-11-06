@@ -18,13 +18,6 @@ type CustomSpectro = Spectrogram &
   wrapper: HTMLDivElement;
 };
 
-const annotation: AudioAnnotation = {
-    start: 40,
-    end: 80,
-    minFreq: 37000,
-    maxFreq: 50000,
-};
-
 const props = defineProps({
   media: {
     type: String,
@@ -222,7 +215,6 @@ const updateLegend = () => {
   const container = document.getElementById('container');
   if (outsidelabel && spectroEl && waveform && container) {
     const rect = waveform.getBoundingClientRect();
-    const rect2 = spectroEl.getBoundingClientRect();
     outsidelabel.style.left = `${-55}px`;
     outsidelabel.style.top = `${ rect.height + 16}px`;
     outsidelabel.width = 75;
@@ -322,9 +314,9 @@ onUnmounted(() => {
 
 <template>
   <v-container
+    id="container"
     style="max-width: 90%; position: relative;"
     @resize="updateSpectro()"
-    id="container"
   >
     <tool-tip
       v-if="spectrogramCanvas && spectrogramWrapper"

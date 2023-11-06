@@ -51,7 +51,7 @@ export default defineComponent({
 <template>
   <v-card>
     <v-card-text v-if="spectroData">
-        <species-indicator
+      <species-indicator
         v-if="spectroData.batches && spectroData.batches.length"
         :batches="spectroData.batches"
       />

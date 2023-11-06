@@ -37,6 +37,7 @@ setup(
     include_package_data=True,
     install_requires=[
         'celery',
+        'django-ninja',
         'django>=4.1, <4.2',
         'django-allauth',
         'django-configurations[database,email]',
@@ -47,12 +48,14 @@ setup(
         'drf-yasg',
         # Production-only
         'django-composed-configuration[prod]>=0.20',
+        'django-s3-file-field[boto3]<1',
         'gunicorn',
     ],
     extras_require={
         'dev': [
             'django-composed-configuration[dev]>=0.18',
             'django-debug-toolbar',
+            'django-s3-file-field[minio]',
             'ipython',
             'tox',
         ]

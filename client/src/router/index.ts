@@ -1,18 +1,17 @@
-import { createRouter, createWebHistory, RouterOptions, RouteLocationNormalized } from 'vue-router';
+import { createRouter, createWebHistory, RouteLocationNormalized } from 'vue-router';
 import HomePage from '../views/HomePage.vue';
 import WaveSurfer from '../components/WaveSurfer.vue';
-import Files from '../views/Files.vue';
-import Species from '../views/Species.vue';
+import Files from '../views/FilesView.vue';
+import Species from '../views/SpeciesView.vue';
 import FileSpectro from '../views/FileSpectro.vue';
 
-import oauthClient from '../plugins/Oauth';
+// import oauthClient from '../plugins/Oauth';
 
 function beforeEach(
   to: RouteLocationNormalized,
   _: RouteLocationNormalized,
   next: (route?: string) => void,
 ) {
-  console.log(oauthClient.isLoggedIn);
   // if (!oauthClient.isLoggedIn && to.name !== '/') {
   //   next('/');
   // }
