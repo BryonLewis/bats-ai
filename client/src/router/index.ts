@@ -4,6 +4,9 @@ import WaveSurfer from '../components/WaveSurfer.vue';
 import Files from '../views/FilesView.vue';
 import Species from '../views/SpeciesView.vue';
 import FileSpectro from '../views/FileSpectro.vue';
+import ProjectsView from '../views/ProjectsView.vue';
+import ProjectView from '../views/ProjectView.vue';
+import SurveyFiles from '../views/SurveyFiles.vue';
 
 // import oauthClient from '../plugins/Oauth';
 
@@ -37,6 +40,20 @@ function routerInit(){
       {
         path: '/files',
         component: Files,
+      },
+      {
+        path: '/projects',
+        component: ProjectsView,
+      },
+      {
+        path: '/project/:id',
+        component: ProjectView,
+        props: true,
+      },
+      {
+        path: '/survey/:id',
+        component: SurveyFiles,
+        props: true,
       },
       {
         path: '/species',

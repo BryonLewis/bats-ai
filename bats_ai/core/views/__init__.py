@@ -1,5 +1,6 @@
-from . import projects
+from . import projects, surveys
 
 __all__ = [
     'projects',
+    'surveys',
 ]

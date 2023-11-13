@@ -57,6 +57,12 @@ export default defineComponent({
         >
           Home
         </v-tab>
+        <v-tab
+          to="/projects"
+          value="projects"
+        >
+          Projects
+        </v-tab>
 
         <v-tab
           to="/files"

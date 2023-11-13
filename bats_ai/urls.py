@@ -43,11 +43,11 @@ urlpatterns = [
     path('oauth/', include('oauth2_provider.urls')),
     path('admin/', admin.site.urls),
     path('api/v1/s3-upload/', include('s3_file_field.urls')),
-    # path('api/v1/', include(router.urls)),
-    path('api/v1/', api.urls),
+    path('api/v1/', include(router.urls)),
     path('api/docs/redoc/', schema_view.with_ui('redoc'), name='docs-redoc'),
     path('api/docs/swagger/', schema_view.with_ui('swagger'), name='docs-swagger'),
     path('api/v1/spectrogram/<int:pk>/', Spectrogram.as_view()),
+    path('api/v1/', api.urls),
 ]
 
 if settings.DEBUG:
