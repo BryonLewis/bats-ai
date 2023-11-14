@@ -1,16 +1,13 @@
 from typing import Any
 
-from django.contrib.gis.db.models.functions import AsGeoJSON
 from django.contrib.postgres.aggregates import JSONBAgg
-from django.db.models import Count, F, JSONField, Transform, Value
-from django.db.models.functions import JSONObject  # type: ignore
+from django.db.models import Count, F
 from ninja import Schema
 from ninja.pagination import RouterPaginated
 from pydantic import UUID4
-from bats_ai.core.models import SurveyEvent
-from bats_ai.core.views.surveys import SurveysSchema
 
-from bats_ai.core.models import Project
+from bats_ai.core.models import Project, SurveyEvent
+from bats_ai.core.views.surveys import SurveysSchema
 
 router = RouterPaginated()
 

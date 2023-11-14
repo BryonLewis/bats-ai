@@ -1,15 +1,14 @@
 import datetime
 from typing import Any
 
-from django.contrib.gis.db.models.functions import AsGeoJSON
 from django.contrib.postgres.aggregates import JSONBAgg
-from django.db.models import Count, F, JSONField, Transform, Value
+from django.db.models import Count, F
 from django.db.models.functions import JSONObject  # type: ignore
 from ninja import Schema
 from ninja.pagination import RouterPaginated
 from pydantic import UUID4
 
-from bats_ai.core.models import SurveyEvent, AcousticFileBatch, AcousticFile, AcousticBatch
+from bats_ai.core.models import AcousticBatch, SurveyEvent
 
 router = RouterPaginated()
 
@@ -29,6 +28,7 @@ class SurveysSchema(Schema):
     surveyTypeDesc: str | None
     surveyMapColor: str | None
 
+
 class Species(Schema):
     speciesCode: str | None
     family: str | None
@@ -36,15 +36,18 @@ class Species(Schema):
     species: str | None
     commonName: str | None
 
+
 class Classifier(Schema):
     name: str | None
     description: str | None
     public: bool | None
 
+
 class Software(Schema):
     name: str | None
     developer: str | None
     version: str | None
+
 
 class SurveyDetails(Schema):
     id: str
@@ -56,6 +59,7 @@ class SurveyDetails(Schema):
     software: Software | None
     classifier: Classifier | None
     annotationCount: int
+
 
 @router.get('/', response=list[SurveysSchema], exclude_none=True)
 def surveys(request):
@@ -89,14 +93,14 @@ def get_survey(request, survey_uuid: UUID4):
                 family=F('acousticfilebatch__auto__family'),
                 genus=F('acousticfilebatch__auto__genus'),
                 species=F('acousticfilebatch__auto__species'),
-                commonName=F('acousticfilebatch__auto__common_name'),  
+                commonName=F('acousticfilebatch__auto__common_name'),
             ),
             manual=JSONObject(
                 speciesCode=F('acousticfilebatch__manual__species_code'),
                 family=F('acousticfilebatch__manual__family'),
                 genus=F('acousticfilebatch__manual__genus'),
                 species=F('acousticfilebatch__manual__species'),
-                commonName=F('acousticfilebatch__manual__common_name'),  
+                commonName=F('acousticfilebatch__manual__common_name'),
             ),
             software=JSONObject(
                 name=F('software__name'),
@@ -108,6 +112,6 @@ def get_survey(request, survey_uuid: UUID4):
                 descriptions=F('classifier__description'),
                 public=F('classifier__public'),
             ),
-            annotationCount=Count('acousticfilebatch__file__acoustic_file_image__id')
+            annotationCount=Count('acousticfilebatch__file__acoustic_file_image__id'),
         )
     )
