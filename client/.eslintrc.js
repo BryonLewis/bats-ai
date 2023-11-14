@@ -15,5 +15,8 @@ module.exports = {
     "@typescript-eslint/semi": ["error"],
     'vue/no-unused-vars': 'error',
     'vue/script-setup-uses-vars': 'error',
+    "vue/valid-v-slot": ["error", {
+      "allowModifiers": true
+    }]
   },
 };
