@@ -1,6 +1,6 @@
 <script lang="ts">
 import { defineComponent, ref, Ref} from 'vue';
-import { getProject, getProjects, getSurvey, Project, Survey, SurveyDetails } from '../api/api';
+import { getSurvey, SurveyDetails } from '../api/api';
 import {
   VDataTable,
 } from "vuetify/labs/VDataTable";
@@ -71,7 +71,7 @@ export default defineComponent({
         density="compact"
         class="elevation-1"
       >
-      <template #item.fileName="{ item }">
+        <template #item.fileName="{ item }">
           <router-link :to="`/spectrogram/${item.selectable.fileId}`">
             {{ item.selectable.fileName }}
           </router-link>

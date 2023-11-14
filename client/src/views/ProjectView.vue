@@ -1,6 +1,6 @@
 <script lang="ts">
 import { defineComponent, ref, Ref} from 'vue';
-import { getProject, getProjects, Project, Survey } from '../api/api';
+import { getProject, Survey } from '../api/api';
 import {
   VDataTable,
 } from "vuetify/labs/VDataTable";

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { GeoJsonObject } from 'geojson'
+import { GeoJsonObject } from 'geojson';
 export interface PaginatedResponse<E> {
     count: number,
     next: string,
