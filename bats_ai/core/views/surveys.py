@@ -55,6 +55,7 @@ class SurveyDetails(Schema):
     manual: Species | None
     software: Software | None
     classifier: Classifier | None
+    annotationCount: int
 
 @router.get('/', response=list[SurveysSchema], exclude_none=True)
 def surveys(request):
@@ -106,6 +107,7 @@ def get_survey(request, survey_uuid: UUID4):
                 name=F('classifier__name'),
                 descriptions=F('classifier__description'),
                 public=F('classifier__public'),
-            )
+            ),
+            annotationCount=Count('acousticfilebatch__file__acoustic_file_image__id')
         )
     )

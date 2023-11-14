@@ -103,6 +103,7 @@ export interface SurveyDetails {
         description?: string;
         public?: boolean;
     }
+    annotationCount: number;
 
 }
 

@@ -43,6 +43,10 @@ export default defineComponent({
             title:'Classifier',
             key:'classifier',
         },
+        {
+            title:'Annotations',
+            key:'annotationCount',
+        },
 
     ]);
     return {
